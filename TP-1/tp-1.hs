@@ -182,10 +182,10 @@ cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
 cantidadDePokemonDe     tp              (E _ pk1 pk2) = (sonDelMismoTipo tp pk1) + (sonDelMismoTipo tp pk2)
 
 listaDePokemon  ::  Entrenador   -> [Pokemon]
-listaDePokemon     (E _ pk1 pk2) = [pk1, pk2]
+listaDePokemon     (E _ pk1 pk2) = pk1: pk2:[]
 
 juntarPokemon :: (Entrenador, Entrenador) -> [Pokemon]
-juntarPokemon    (E1, E2)                 = (listaDePokemon E1) ++ (listaDePokemon E2) 
+juntarPokemon    (e1 , e2)                =  (listaDePokemon e1) ++ (listaDePokemon e2)
 juntarPokemon       _                     = []
 
 --FUNCIONES POLIMORFICAS
