@@ -33,8 +33,8 @@ data Dir = Norte | Este | Sur | Oeste deriving Show
 --a)
 opuesto :: Dir -> Dir
 opuesto   Norte = Sur
-opuesto   Sur = Norte
-opuesto   Este = Oeste
+opuesto   Sur   = Norte
+opuesto   Este  = Oeste
 opuesto   Oeste = Este
 --b)
 iguales :: Dir -> Dir -> Bool
@@ -48,7 +48,10 @@ siguiente :: Dir -> Dir
 siguiente  Norte = Este
 siguiente  Este  = Sur
 siguiente  Sur = Oeste
-siguiente  Oeste = Norte
+siguiente  Oeste = error " no existe direccion siguiente al Oeste"
+--precondicion: Oeste o tiene siguiente direccion
+-- la funcion es parcial porque no contempla todos los casos posibles 
+
 --2)
 data DiaDeSemana = Lunes | Martes | Miercoles | Jueves | Viernes | Sabado | Domingo deriving Show
 
@@ -57,18 +60,23 @@ primeroYUltimoDia :: (DiaDeSemana, DiaDeSemana)
 primeroYUltimoDia = (Lunes, Domingo)
 --b)
 empiezaConM :: DiaDeSemana -> Bool
-empiezaConM    Martes  = True
-empiezaConM    Miercoles = True
+empiezaConM    Martes       = True
+empiezaConM    Miercoles    = True
 empiezaConM     _   = False
 --c)
+valorDelDia  ::   DiaDeSemana -> Int
+valorDelDia       Lunes       =  1
+valorDelDia       Martes      =  2
+valorDelDia       Miercoles   =  3
+valorDelDia       Jueves      =  4
+valorDelDia       Viernes     =  5
+valorDelDia       Sabado      =  6
+valorDelDia       Domingo     =  7
+
 vieneDespues :: DiaDeSemana -> DiaDeSemana -> Bool
-vieneDespues    Martes    Lunes   = True
-vieneDespues    Miercoles Martes  = True
-vieneDespues    Jueves  Miercoles = True
-vieneDespues    Viernes Jueves    = True
-vieneDespues    Sabado  Viernes   = True
-vieneDespues    Domingo Sabado    = True
-vieneDespues     _       _        = False
+vieneDespues    dia1           dia2        = valorDelDia dia1 > valorDelDia dia2
+
+
 --d)
 estaEnElMedio :: DiaDeSemana -> Bool
 estaEnElMedio    Lunes       = False
@@ -79,18 +87,21 @@ estaEnElMedio    _           =  True
 
 --a)
 negar :: Bool -> Bool
-negar  a   = not a
+negar  True   = False
+negar  False  = True
 
 --b)
 implica :: Bool -> Bool -> Bool
-implica True False = False
-implica _ _= True
+implica    True    False = False
+implica    _       _     = True
 --c)
 yTambien :: Bool -> Bool -> Bool
-yTambien     a      b    =  a && b
+yTambien    True     True    = True
+yTambien    _        _       = False
 --d)
 oBien :: Bool -> Bool -> Bool
-oBien     a      b    =  a || b
+oBien     False  False   =  False
+oBien     _      _       =  True
 
 --REGISTROS
 data Persona = P String Int 
@@ -106,7 +117,7 @@ crecer :: Persona -> Persona
 crecer    (P n e) = (P n (e+1))
 
 cambioDeNombre :: String -> Persona -> Persona
-cambioDeNombre    n1        (P n e) = (P n1 e)
+cambioDeNombre    n1        (P n e) = P n1 e
 
 esMayorQueLaOtra :: Persona -> Persona -> Bool
 esMayorQueLaOtra    (P n1 e1)    (P n2 e2)  = e1 > e2
@@ -124,7 +135,7 @@ maria :: Persona
 maria = P "maria" 42  
 
 
-data TipoDePokemon = Agua | Fuego | Planta  deriving (Eq, Show)
+data TipoDePokemon = Agua | Fuego | Planta  deriving  Show
 data Pokemon = PK TipoDePokemon Int deriving Show
 data Entrenador = E String Pokemon Pokemon deriving Show
 
@@ -147,25 +158,35 @@ pok4 = PK Agua 70
 
 
 tipoDePokemonEsSuperior :: TipoDePokemon -> TipoDePokemon -> Bool
-tipoDePokemonEsSuperior Agua Fuego = True
+tipoDePokemonEsSuperior Agua  Fuego  = True
 tipoDePokemonEsSuperior Fuego Planta = True
-tipoDePokemonEsSuperior Planta Agua = True
-tipoDePokemonEsSuperior _ _ = False
+tipoDePokemonEsSuperior Planta Agua  = True
+tipoDePokemonEsSuperior _       _    = False
 
 superaA :: Pokemon -> Pokemon -> Bool
 superaA (PK tp ent) (PK tp1 ent1) = tipoDePokemonEsSuperior tp tp1
 
+
+esMismoTipoPK :: TipoDePokemon -> TipoDePokemon -> Bool
+esMismoTipoPK     Agua           Agua           = True
+esMismoTipoPK     Fuego          Fuego          = True
+esMismoTipoPK     Planta         Planta         = True
+esMismoTipoPK     _              _              = False
+
 sonDelMismoTipo :: TipoDePokemon -> Pokemon -> Int
-sonDelMismoTipo     tp              (PK t e1)   = if (tp == t)
+sonDelMismoTipo     tp              (PK t e1)   = if esMismoTipoPK tp t
                                                     then 1
                                                     else 0
 
 cantidadDePokemonDe :: TipoDePokemon -> Entrenador -> Int
 cantidadDePokemonDe     tp              (E _ pk1 pk2) = (sonDelMismoTipo tp pk1) + (sonDelMismoTipo tp pk2)
 
+listaDePokemon  ::  Entrenador   -> [Pokemon]
+listaDePokemon     (E _ pk1 pk2) = [pk1, pk2]
+
 juntarPokemon :: (Entrenador, Entrenador) -> [Pokemon]
-juntarPokemon ((E _ pk1 pk2), (E _ pk3 pk4)) = pk1 : pk2 : pk3 : pk4 : []
-juntarPokemon       _                      = []
+juntarPokemon    (E1, E2)                 = (listaDePokemon E1) ++ (listaDePokemon E2) 
+juntarPokemon       _                     = []
 
 --FUNCIONES POLIMORFICAS
 
