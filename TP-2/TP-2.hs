@@ -175,7 +175,8 @@ promedio     []    = 0
 promedio     xs    = div (sumatoria xs)  (length xs)
 
 promedioEdad :: [Persona] -> Int
-promedioEdad    []        = 0 
+-- debe haber al menos una persona en la lista
+promedioEdad    ( x: [])  = edad x 
 promedioEdad    xs    = promedio (lsEdades xs)
 
 --c
