@@ -92,17 +92,17 @@ negar  False  = True
 
 --b)
 implica :: Bool -> Bool -> Bool
-implica    True    False = False
+implica    True    b     = b
+--implica    True    False = False
 implica    _       _     = True
 --c)
 yTambien :: Bool -> Bool -> Bool
-yTambien    True     True    = True
-yTambien    _        _       = False
+yTambien    True     b    = b
+yTambien    False    _    = False
 --d)
 oBien :: Bool -> Bool -> Bool
-oBien     False  False   =  False
-oBien     _      _       =  True
-
+oBien     False  b   =  b
+oBien     True   _   =  True
 --REGISTROS
 data Persona = P String Int 
                 deriving Show
@@ -186,7 +186,6 @@ listaDePokemon     (E _ pk1 pk2) = pk1: pk2:[]
 
 juntarPokemon :: (Entrenador, Entrenador) -> [Pokemon]
 juntarPokemon    (e1 , e2)                =  (listaDePokemon e1) ++ (listaDePokemon e2)
-juntarPokemon       _                     = []
 
 --FUNCIONES POLIMORFICAS
 
