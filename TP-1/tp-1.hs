@@ -98,11 +98,11 @@ implica    _       _     = True
 --c)
 yTambien :: Bool -> Bool -> Bool
 yTambien    True     b    = b
-yTambien    False    _    = False
+yTambien    _   _    = False
 --d)
 oBien :: Bool -> Bool -> Bool
 oBien     False  b   =  b
-oBien     True   _   =  True
+oBien     _   _   =  True
 --REGISTROS
 data Persona = P String Int 
                 deriving Show

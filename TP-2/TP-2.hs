@@ -64,7 +64,6 @@ agregarAlFinal    (x:xs) a = x: agregarAlFinal xs a
 
 --12)
 agregar :: [a] -> [a]    -> [a]
-agregar    []      []    = []
 agregar    ls      []    = ls
 agregar    []      xs    = xs
 agregar    ls    (x:xs)  =  agregar (agregarAlFinal ls x) xs
@@ -76,7 +75,6 @@ reversa    (x:xs) = agregarAlFinal (reversa xs) x
 
 --14)
 zipMaximos :: [Int] -> [Int] -> [Int]
-zipMaximos    []    []    = []
 zipMaximos    xs    []    = xs
 zipMaximos    []    ys    = ys
 zipMaximos    (x:xs)(y:ys)=  if x > y
