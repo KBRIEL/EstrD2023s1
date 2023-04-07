@@ -74,25 +74,14 @@ hayTesoro    (Nada     c )  = hayTesoro c
 
 {-Indica si hay un cofre con un tesoro en el camino.-}
 
-{-
-contarPasos :: Camino -> Int
-contarPasos    Fin            = 0
-contarPasos    (Cofre os c)   = if contieneTesoro os
-                                    then 0
-                                    else 1 + contarPasos c
-contarPasos    (Nada c)       = 1 + contarPasos c
--}
+
 
 pasosHastaTesoro :: Camino -> Int
 pasosHastaTesoro   Fin            = 0
 pasosHastaTesoro   (Cofre os c)   = if contieneTesoro os then 0 else 1 + pasosHastaTesoro c
 pasosHastaTesoro    (Nada c)      = 1 + pasosHastaTesoro c
 
-{-
-pasosHastaTesoro    ca = if hayTesoro ca 
-                            then contarPasos ca  
-                            else 0                                                                           
--}
+
 
 
 {-Indica la cantidad de pasos que hay que recorrer hasta llegar al primer cofre con un tesoro.
@@ -331,8 +320,8 @@ ramaMasLarga    (NodeT x tl tr) = if heightT tl > heightT tr
 {-Devuelve los elementos de la rama más larga del árbol-}
 
 consACada :: a -> [[a]] -> [[a]]
-consACada x []       = []
-consACada x (xs:xss) = (x:xs) : consACada x xss
+consACada    x    []       = []
+consACada    x   (xs:xss) = (x:xs) : consACada x xss
 
 todosLosCaminos :: Tree a -> [[a]]
 todosLosCaminos    EmptyT  = []
