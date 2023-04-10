@@ -101,9 +101,9 @@ factorial    n   = factorial (n - 1) * n
 
 --2)
 cuentaRegresiva :: Int -> [Int]
---n tiene que ser mayor a 0
-cuentaRegresiva    0    = []
-cuentaRegresiva    n    = n: cuentaRegresiva (n - 1)
+cuentaRegresiva    n    = if n>0 
+                            then n: cuentaRegresiva (n - 1)
+                            else []
 
 
 --3)
@@ -158,7 +158,6 @@ tipoDePokemonEsSuperior _       _    = False
 --a
 mayoresA :: Int -> [Persona] -> [Persona]
 mayoresA     n      []       = []
-mayoresA     0      xs       =  xs
 mayoresA     n      (x:xs)   = if n < edad x
                                   then x: mayoresA n xs
                                   else mayoresA n xs
@@ -215,21 +214,30 @@ cantPokemon    (ConsEntrenador n [])   = 0
 cantPokemon    (ConsEntrenador n ps)   = longitud ps
 
 --b
+dameTipoPk :: Pokemon -> TipoDePokemon
+dameTipoPk    (ConsPokemon t n)  = t
+
+cantMismoTipo :: TipoDePokemon -> [Pokemon] -> Int
+cantMismoTipo     tp               []      = 0
+cantMismoTipo     tp              (p:ps)   = if esMismoTipoPK tp (dameTipoPk p)
+                                                        then 1 + cantMismoTipo tp  ps
+                                                        else cantMismoTipo tp ps
+
+
+
+
+cantPokemonDe :: TipoDePokemon -> Entrenador -> Int
+cantPokemonDe    tp             (ConsEntrenador n []) = 0
+cantPokemonDe    tp             (ConsEntrenador n ps) = cantMismoTipo  tp ps
+                                                                  
+--c
 mismoTipo :: TipoDePokemon -> Pokemon -> Bool
 mismoTipo    tp              (ConsPokemon  t n ) = esMismoTipoPK tp t
 
-cantPokemonDe :: TipoDePokemon -> Entrenador -> Int
-cantPokemonDe    tp             (ConsEntrenador n [])     = 0
-cantPokemonDe    tp             (ConsEntrenador n (p:ps)) = if mismoTipo tp p
-                                                                 then  1 + cantPokemonDe tp (ConsEntrenador n ps)
-                                                                 else cantPokemonDe tp (ConsEntrenador n ps)        
---c
-
 hayEnListaPokTipo :: TipoDePokemon -> [Pokemon] ->    Bool
 hayEnListaPokTipo     tp               []      = False
-hayEnListaPokTipo     tp               (p:ps)  = if ( mismoTipo tp p)
-                                                                then  True
-                                                                else False || hayEnListaPokTipo tp ps
+hayEnListaPokTipo     tp               (p:ps)  = ( mismoTipo tp p) || hayEnListaPokTipo tp ps
+                                                               
                                                             
 hayPokTipo :: TipoDePokemon -> Entrenador           ->    Bool
 hayPokTipo     tp              (ConsEntrenador n [])= False
@@ -238,20 +246,18 @@ hayPokTipo     tp              (ConsEntrenador n ps)= hayEnListaPokTipo tp ps
 superaA :: TipoDePokemon -> Pokemon               -> Bool
 superaA     tp             (ConsPokemon tp1 ent1) = tipoDePokemonEsSuperior tp tp1
 
+
 tipoVenceLista :: TipoDePokemon -> [Pokemon] -> Bool
 tipoVenceLista   tp                []        = False
-tipoVenceLista   tp                ( p:ps)   = if (superaA tp p)
-                                                then  True && tipoVenceLista tp ps
-                                                else False                          
+tipoVenceLista   tp                ( p:ps)   = (superaA tp p)  && tipoVenceLista tp ps
+                
 
 tipoVenceTodos :: TipoDePokemon -> Entrenador           -> Bool
 tipoVenceTodos        tp               (ConsEntrenador n ps) = tipoVenceLista tp ps
 
 
 cuantosDeTipo_De_LeGananATodosLosDe_ :: TipoDePokemon -> Entrenador          ->  Entrenador            -> Int
-cuantosDeTipo_De_LeGananATodosLosDe_    tp               (ConsEntrenador n1 [])  e2                 =  0 
-cuantosDeTipo_De_LeGananATodosLosDe_    tp               e1                     (ConsEntrenador n2 []) =  0
-cuantosDeTipo_De_LeGananATodosLosDe_    tp               e1                      e2                    =  if( (hayPokTipo tp e1)&& (tipoVenceTodos tp e2))
+cuantosDeTipo_De_LeGananATodosLosDe_    tp               e1                      e2                    =  if (hayPokTipo tp e1)&& (tipoVenceTodos tp e2)
                                                                                                             then  cantPokemonDe tp e1
                                                                                                             else 0
 --d
@@ -317,7 +323,7 @@ esDeveloper (Developer _ _ )  = True
 esDeveloper  _               = False
 
 esSenior :: Rol         -> Bool 
-esSenior ( Developer  Senior _)  = True
+esSenior ( _  Senior _)  = True
 esSenior  _              = False
 
 sonSenior :: [Rol] -> [Rol]
@@ -363,9 +369,8 @@ dameProyRol   (Management s p) = dameElNombre p
 
 perteneceA :: [Proyecto]-> Rol-> Bool
 perteneceA    []            r  = False
-perteneceA     (p:ps)       r  =  if dameProyRol r == dameElNombre p
-                                    then True
-                                    else False
+perteneceA     (p:ps)       r  = dameProyRol r == dameElNombre p
+
                                     
 
 pertenecenAEstosProyectos :: [Proyecto]-> [Rol]->[Rol]
@@ -377,7 +382,6 @@ pertenecenAEstosProyectos     ps           (r:rs)=  if perteneceA ps r
                                                         else pertenecenAEstosProyectos ps rs
 
 trabajadoresDelProyecto  :: [Proyecto] -> Empresa ->[Rol]
-trabajadoresDelProyecto      []            e      = []
 trabajadoresDelProyecto      ps        (ConsEmpresa rs)      =  pertenecenAEstosProyectos ps rs  
 
 cantQueTrabajanEn :: [Proyecto] -> Empresa -> Int
@@ -417,5 +421,11 @@ asignadosPorProyecto    (ConsEmpresa (r:rs)) = cantEmleadosDelProyecto (emleados
 {-Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con su
 cantidad de personas involucradas.-}
 
+
+--consultas
+--19#
+--20#
+--21#
+--23#
 
 
