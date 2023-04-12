@@ -66,7 +66,7 @@ agregarAlFinal    (x:xs) a = x: agregarAlFinal xs a
 agregar :: [a] -> [a]    -> [a]
 agregar    ls      []    = ls
 agregar    []      xs    = xs
-agregar    ls    (x:xs)  =  agregar (agregarAlFinal ls x) xs
+agregar    (l:ls)   xs     = l: agregar ls xs
 
 --13)
 reversa :: [a]    -> [a]
@@ -210,7 +210,6 @@ entrenador3 = ConsEntrenador "Isra" [pok1,pok2, pok3, pok4]
 
 --a
 cantPokemon :: Entrenador -> Int
-cantPokemon    (ConsEntrenador n [])   = 0
 cantPokemon    (ConsEntrenador n ps)   = longitud ps
 
 --b
@@ -227,7 +226,6 @@ cantMismoTipo     tp              (p:ps)   = if esMismoTipoPK tp (dameTipoPk p)
 
 
 cantPokemonDe :: TipoDePokemon -> Entrenador -> Int
-cantPokemonDe    tp             (ConsEntrenador n []) = 0
 cantPokemonDe    tp             (ConsEntrenador n ps) = cantMismoTipo  tp ps
                                                                   
 --c
@@ -236,11 +234,10 @@ mismoTipo    tp              (ConsPokemon  t n ) = esMismoTipoPK tp t
 
 hayEnListaPokTipo :: TipoDePokemon -> [Pokemon] ->    Bool
 hayEnListaPokTipo     tp               []      = False
-hayEnListaPokTipo     tp               (p:ps)  = ( mismoTipo tp p) || hayEnListaPokTipo tp ps
+hayEnListaPokTipo     tp               (p:ps)  =  mismoTipo tp p || hayEnListaPokTipo tp ps
                                                                
                                                             
 hayPokTipo :: TipoDePokemon -> Entrenador           ->    Bool
-hayPokTipo     tp              (ConsEntrenador n [])= False
 hayPokTipo     tp              (ConsEntrenador n ps)= hayEnListaPokTipo tp ps
 
 superaA :: TipoDePokemon -> Pokemon               -> Bool
@@ -292,15 +289,14 @@ dameElNombre   (ConsProyecto s)= s
 
 proyectosSinRepetir ::[Proyecto]-> [Proyecto]
 proyectosSinRepetir [] = []
-proyectosSinRepetir   (x:xs) = if contiene x xs
+proyectosSinRepetir   (x:xs) = if contiene x (proyectosSinRepetir xs)
                             then proyectosSinRepetir xs
                             else x: proyectosSinRepetir xs 
 
 contiene :: Proyecto -> [Proyecto] -> Bool
 contiene    a     [] = False
-contiene    a    (x:xs) = if dameElNombre a == dameElNombre x
-                            then True || contiene a xs
-                            else  contiene a xs
+contiene    a    (x:xs) =  dameElNombre a == dameElNombre x || contiene a xs
+                         
 
 rolAProyecto :: Rol -> Proyecto
 rolAProyecto     (Developer s1 p1)  = p1
@@ -308,50 +304,51 @@ rolAProyecto     (Management s2 p2) = p2
 
 proyectols :: [Rol] -> [Proyecto]
 proyectols     []   = []
-proyectols    (r:rs)= (rolAProyecto r): ( proyectols rs)
+proyectols    (r:rs)= if contiene (rolAProyecto r) ( proyectols rs)
+                        then   proyectols rs
+                        else (rolAProyecto r): proyectols rs
 
 proyectos :: Empresa -> [Proyecto]
-proyectos    (ConsEmpresa []) = []
-proyectos    (ConsEmpresa rs) =  proyectosSinRepetir (proyectols rs)
+proyectos    (ConsEmpresa rs) =  proyectols rs
 
 {-Dada una empresa denota la lista de proyectos en los que trabaja, sin elementos repetidos-}
 
 
 --b
+getSeniority  :: Rol -> Seniority
+getSeniority   (Developer s1 p1) = s1
+getSeniority  (Management s2 p2) = s2
+
+esSenior :: Seniority -> Bool  
+esSenior     Senior   =  True
+esSenior     _        =  False
+
 esDeveloper :: Rol -> Bool  
 esDeveloper (Developer _ _ )  = True
 esDeveloper  _               = False
 
-esSenior :: Rol         -> Bool 
-esSenior ( _  Senior _)  = True
-esSenior  _              = False
 
 sonSenior :: [Rol] -> [Rol]
 sonSenior       [] = []
-sonSenior   (r:rs) = if esDeveloper r && esSenior r
+sonSenior   (r:rs) = if esDeveloper r && esSenior (getSeniority  r)
                         then r: sonSenior rs
                         else  sonSenior rs
 
 dameElProyecto :: Rol -> Proyecto
---debe ser developer senior
 dameElProyecto   (Developer s p)  =  p
                            
-nombreDelProyecto :: Proyecto         ->  String
-nombreDelProyecto    (ConsProyecto s) = s
-
 estaEnElProyecto :: Rol -> [Proyecto] -> Bool
 estaEnElProyecto    rol     []      =    False
-estaEnElProyecto    rol    (p:ps)   =   nombreDelProyecto (dameElProyecto rol) == nombreDelProyecto p || estaEnElProyecto  rol ps
+estaEnElProyecto    rol    (p:ps)   =   dameElNombre (dameElProyecto rol) == dameElNombre p || estaEnElProyecto  rol ps
 
 soloLosDeLosProyectos :: [Rol] -> [Proyecto] -> [Rol]
-soloLosDeLosProyectos    []       []          = []
+soloLosDeLosProyectos    []       ps         = []
 soloLosDeLosProyectos    (r:rs)   ps          = if estaEnElProyecto r ps
                                                   then r: soloLosDeLosProyectos rs  ps      
                                                   else soloLosDeLosProyectos rs ps
 
 
 losDevSenior :: Empresa -> [Proyecto] -> Int
-losDevSenior (ConsEmpresa []) ps = 0
 losDevSenior (ConsEmpresa rs) ps = length (sonSenior rs)
 
 
@@ -363,18 +360,17 @@ además a los proyectos dados por parámetro.
 
 --c
 
-dameProyRol :: Rol -> String
-dameProyRol   (Developer s p)  = dameElNombre p
-dameProyRol   (Management s p) = dameElNombre p
+dameProyRol :: Rol -> Proyecto
+dameProyRol   (Developer s p)  =  p
+dameProyRol   (Management s p) =  p
 
 perteneceA :: [Proyecto]-> Rol-> Bool
 perteneceA    []            r  = False
-perteneceA     (p:ps)       r  = dameProyRol r == dameElNombre p
+perteneceA     (p:ps)       r  = dameElNombre (dameProyRol r)  == dameElNombre p || perteneceA ps r
 
                                     
 
 pertenecenAEstosProyectos :: [Proyecto]-> [Rol]->[Rol]
-pertenecenAEstosProyectos    []            []    = []
 pertenecenAEstosProyectos    []            rs    = []
 pertenecenAEstosProyectos    ps            []    = []
 pertenecenAEstosProyectos     ps           (r:rs)=  if perteneceA ps r
@@ -385,47 +381,28 @@ trabajadoresDelProyecto  :: [Proyecto] -> Empresa ->[Rol]
 trabajadoresDelProyecto      ps        (ConsEmpresa rs)      =  pertenecenAEstosProyectos ps rs  
 
 cantQueTrabajanEn :: [Proyecto] -> Empresa -> Int
-cantQueTrabajanEn    []            e       =  0
 cantQueTrabajanEn    ps       e       = length (trabajadoresDelProyecto ps e)
 
 {-Indica la cantidad de empleados que trabajan en alguno de los proyectos dados.-}
 
 
 --d
+rolLsATuplaPI :: [Rol]-> [(Proyecto, Int)]
+rolLsATuplaPI    []     = []
+rolLsATuplaPI    (r:rs) = sumarTupla (dameElProyecto r )(rolLsATuplaPI rs)
 
-todosLosProyectos :: [Rol]  -> [Proyecto]
-todosLosProyectos    []     =  []
-todosLosProyectos    (r:rs) =  ( dameElProyecto r) : todosLosProyectos rs
+sumarTupla :: Proyecto -> [(Proyecto, Int)] -> [(Proyecto, Int)]
+sumarTupla    p           []               = [(p,1)]
+sumarTupla    p           ((p2, i):ts)     = if sonElMismo p p2
+                                              then (p2,i+1):ts
+                                              else (p2, i) : sumarTupla p ts
 
-emleadosDelProyecto :: Rol -> [(Proyecto, Rol)]
-emleadosDelProyecto (Developer s p)  = (p,(Developer s p)): [ ]
-emleadosDelProyecto (Management s p) = (p,(Management s p)): [ ]
+    
+sonElMismo :: Proyecto -> Proyecto -> Bool
+sonElMismo    p1          p2        = dameElNombre p1 == dameElNombre p2
 
-separarTupla :: (Proyecto, Rol) -> Proyecto
---debe ser una tupla Proyecto Rol
-separarTupla     (p,r)           = p
-
-cantEmpleadosXProyecto :: Proyecto -> [(Proyecto, Rol)] -> Int
-cantEmpleadosXProyecto     p             []             = 0
-cantEmpleadosXProyecto     p           (r:rs)           = if dameElNombre p == dameElNombre (separarTupla r) 
-                                                            then 1 + cantEmpleadosXProyecto p rs 
-                                                            else  cantEmpleadosXProyecto p rs 
-
-cantEmleadosDelProyecto :: [(Proyecto, Rol)] ->[Proyecto]  -> [ (Proyecto, Int)]
-cantEmleadosDelProyecto   prs        (p:ps)  =  (p , (cantEmpleadosXProyecto p prs)) : (cantEmleadosDelProyecto prs ps) 
-
-asignadosPorProyecto :: Empresa -> [(Proyecto, Int)]
-asignadosPorProyecto    (ConsEmpresa (r:rs)) = cantEmleadosDelProyecto (emleadosDelProyecto r) (proyectosSinRepetir(todosLosProyectos (r:rs)))
-
+asignadosPorProyecto :: Empresa -> [(Proyecto, Int)]   
+asignadosPorProyecto    (ConsEmpresa rs) = rolLsATuplaPI rs
 
 {-Devuelve una lista de pares que representa a los proyectos (sin repetir) junto con su
 cantidad de personas involucradas.-}
-
-
---consultas
---19#
---20#
---21#
---23#
-
-

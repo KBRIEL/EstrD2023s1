@@ -207,7 +207,7 @@ arbol3 = NodeT 1
                             EmptyT 
                             EmptyT)  
                     EmptyT
-                    )
+                    ) 
 --Árboles binarios-----------------------------------------------------
    
 data Tree a = EmptyT | NodeT a (Tree a) (Tree a) deriving Show
@@ -267,7 +267,7 @@ leaves        (NodeT a tl tr)     = if esHoja tl && esHoja tr
 
 heightT :: Tree a -> Int
 heightT     EmptyT  = 0
-heightT     (NodeT a tl tr)     = 1 + heightT tl + heightT tr 
+heightT     (NodeT a tl tr)     = 1 + max (heightT tl) (heightT tr)
 
 {-Dado un árbol devuelve su altura.
 Nota: la altura de un árbol (height en inglés), también llamada profundidad, es la cantidad
@@ -335,7 +335,10 @@ todosLosCaminos    (NodeT x t1 t2) =[x] : consACada x (todosLosCaminos t1) ++ co
 data ExpA = Valor Int
                     | Sum ExpA ExpA
                     | Prod ExpA ExpA
-                    | Neg ExpA
+                    | Neg ExpA    deriving Show
+
+uno = Valor 1
+dos = Valor 2
 
 
 eval :: ExpA -> Int
@@ -347,6 +350,27 @@ eval    (Neg  (Valor n))          = -n
 
 {-Dada una expresión aritmética devuelve el resultado evaluarla.-}
 
+simplificar (Valor x) =  Valor x 
+simplificar (Sum x y) = simplificarSum (simplificar x) (simplificar y)
+simplificar (Prod x y) = simplificarProd (simplificar x) (simplificar y)
+simplificar (Neg x) = simplificarNeg (simplificar x) 
+
+simplificarSum :: ExpA -> ExpA -> ExpA
+simplificarSum (Valor 0) n = n
+simplificarSum n (Valor 0) = n 
+simplificarSum (Valor n1) (Valor n2) = Valor (n1 + n2)
+
+simplificarProd :: ExpA -> ExpA -> ExpA
+simplificarProd (Valor 0) n = Valor 0 
+simplificarProd n (Valor 0) = Valor 0
+simplificarProd (Valor n1) (Valor n2)   = Valor (n1 * n2)
+
+
+simplificarNeg :: ExpA -> ExpA
+simplificarNeg (Neg (Valor x)) = Valor x 
+simplificarNeg n = n
+
+{-
 simplificar ::  ExpA -> ExpA
 simplificar    (Valor n)                    = (Valor n)
 simplificar    (Sum (Valor n1) (Valor 0) )  = (Valor n1)
@@ -357,7 +381,7 @@ simplificar    (Prod (Valor n1) (Valor 0) ) = (Valor 0)
 simplificar    (Prod (Valor n1) (Valor n2)) = (Valor (n1 * n2))
 simplificar    (Neg (Neg (Valor n1)))      = (Valor n1 )
 
-{-Dada una expresión aritmética, la simplifica según los siguientes criterios (descritos utilizando
+Dada una expresión aritmética, la simplifica según los siguientes criterios (descritos utilizando
 notación matemática convencional):
 a) 0 + x = x + 0 = x
 b) 0 * x = x * 0 = 0
