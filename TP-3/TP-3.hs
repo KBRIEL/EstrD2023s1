@@ -1,8 +1,8 @@
 
 --1 Tipos recursivos simples
 
-data Color = Azul | Rojo
-data Celda = Bolita Color Celda | CeldaVacia
+data Color = Azul | Rojo deriving Show
+data Celda = Bolita Color Celda | CeldaVacia  deriving Show
 
 bol1 = Bolita Rojo  CeldaVacia
 bol2 = Bolita Azul  CeldaVacia
@@ -25,22 +25,25 @@ existe una operación sobre listas que ayude a resolver el problema.-}
 
 poner :: Color -> Celda -> Celda
 poner    c     CeldaVacia   = Bolita c CeldaVacia
-poner    c     (Bolita c1 c2) = Bolita c c2
+poner    c     (Bolita c1 cel) = Bolita c1 (poner c cel)
 
 {-Dado un color y una celda, agrega una bolita de dicho color a la celda.-}
 
 sacar :: Color -> Celda -> Celda
-sacar    _        CeldaVacia = CeldaVacia
-sacar    Rojo     (Bolita Rojo c2 )= c2
-sacar    Azul    ( Bolita Azul c2 )= c2
-sacar    _        ce             = ce                                
+sacar    c        CeldaVacia     = CeldaVacia
+sacar    c        (Bolita c1 ce) = if esColor c c1
+                                     then ce
+                                     else (Bolita c1 (sacar c ce))  
+    
+
+
 
 {-Dado un color y una celda, quita una bolita de dicho color de la celda. Nota: a diferencia de
 Gobstones, esta función es total.-}
+
 ponerN :: Int -> Color -> Celda -> Celda
 ponerN    0      c         ce         =  ce
-ponerN    n      c         CeldaVacia = ponerN (n-1) c (Bolita c CeldaVacia)
-ponerN    n      c         ce         = ponerN (n-1) c (Bolita c ce )
+ponerN    n      c         ce         = ponerN (n-1) c (poner c ce )
 
 {-Dado un número n, un color c, y una celda, agrega n bolitas de color c a la celda
 
@@ -77,7 +80,6 @@ hayTesoro    (Nada     c )  = hayTesoro c
 
 
 pasosHastaTesoro :: Camino -> Int
-pasosHastaTesoro   Fin            = 0
 pasosHastaTesoro   (Cofre os c)   = if contieneTesoro os then 0 else 1 + pasosHastaTesoro c
 pasosHastaTesoro    (Nada c)      = 1 + pasosHastaTesoro c
 
@@ -89,18 +91,19 @@ Si un cofre con un tesoro está al principio del camino, la cantidad de pasos a 
 Precondición: tiene que haber al menos un tesoro.-}
 
 moverN :: Int -> Camino -> Camino
-moverN     0      c             =  c
-moverN     n      Fin           =  error "no existen esa cantidad de pasos"
-moverN     n     (Nada c)       =  moverN (n -1) c
-moverN     n     (Cofre os c)   =  moverN (n -1) c
+moverN     0      c      =  c
+moverN     n      c      = moverN (n-1) ( mover c)
+
+mover ::  Camino -> Camino
+mover      Fin           = Fin
+mover     (Nada c)       =  c
+mover     (Cofre os c)   =  c
 
 hayTesoroAqui :: Camino -> Bool
-hayTesoroAqui    Fin         = False
 hayTesoroAqui    (Cofre os c)= contieneTesoro os
-hayTesoroAqui    (Nada c)    =  False
+hayTesoroAqui     _   =  False
 
 hayTesoroEn :: Int -> Camino -> Bool
-hayTesoroEn    0       ca    =  hayTesoroAqui   ca
 hayTesoroEn    n       ca     = hayTesoroAqui (moverN n ca )
 
 
@@ -108,65 +111,55 @@ hayTesoroEn    n       ca     = hayTesoroAqui (moverN n ca )
 pasos es 5, indica si hay un tesoro en 5 pasos.-}
 
 
-cantTesoros :: Camino -> Int
-cantTesoros    Fin      = 0
-cantTesoros    (Cofre os c)= if contieneTesoro os 
-                                then 1 + cantTesoros c 
-                                else 0 + cantTesoros c 
-cantTesoros    (Nada c)   = cantTesoros c
 
+-----------------------------------
+siguienteCamino :: Camino -> Camino
+siguienteCamino  Fin          = Fin
+siguienteCamino  (Cofre os c) =  c
+siguienteCamino  (Nada c)     =  c
+
+xCantDeTesoros ::Camino -> Bool
+xCantDeTesoros   Fin         =  False
+xCantDeTesoros   (Cofre os ca)= contieneTesoro os
+xCantDeTesoros   (Nada ca)   = False
+                                    
 
 alMenosNTesoros :: Int -> Camino -> Bool
-alMenosNTesoros    n      ca     = (cantTesoros ca) >= n
+alMenosNTesoros    0      _     =  True
+alMenosNTesoros    n      Fin   =  False
+alMenosNTesoros    n      ca    = if hayTesoroAqui ca 
+                                        then  alMenosNTesoros (n-1)  (siguienteCamino ca) 
+                                        else  alMenosNTesoros n  (siguienteCamino ca)
 
 
 
 
 {-Indica si hay al menos “n” tesoros en el camino.-}
 
-{-(desafío)-}
-cortarCamino :: Camino -> Camino
-cortarCamino    Fin   = error " no hay mas camino"
-cortarCamino   ( Cofre os c) = c
-cortarCamino   ( Nada c)    = c
 
-agregarCamino ::Int -> Camino -> Camino
-agregarCamino   n      Fin          = if (n>1) 
-                                        then error "faltan caminos" 
-                                        else Fin 
-agregarCamino   n      (Cofre os c) = if (n>1) 
-                                        then Cofre os (agregarCamino (n -1) c) 
-                                        else Cofre os Fin
-agregarCamino   n       (Nada c)     = if (n>1) 
-                                        then Nada (agregarCamino (n -1) c) 
-                                        else Nada Fin
+-----(desafio)-------------------------------------------------------------------------
+cantTesoroHasta :: Int -> Camino -> Int
+cantTesoroHasta    0      ca      = if hayTesoroAqui ca
+                                     then 1 
+                                     else 0
+cantTesoroHasta    n      ca      = if hayTesoroAqui ca
+                                     then 1 + cantTesoroHasta (n-1) (siguienteCamino ca)
+                                     else cantTesoroHasta (n-1) (siguienteCamino ca)
 
-caminoDesde :: Int -> Camino -> Camino
-caminoDesde    0      c      = c
-caminoDesde    n      c      = caminoDesde (n-1) (cortarCamino c)
-
-caminoHasta :: Int -> Camino -> Camino
-caminoHasta    0      c      = c
-caminoHasta    n      c      = agregarCamino n c
-
-caminoCorto :: Int -> Int -> Camino -> Camino
-caminoCorto    n      m      ca     = caminoHasta m (caminoDesde n ca)
-
-contarTesoros :: Camino -> Int
-contarTesoros    Fin      = 0
-contarTesoros    (Cofre ts c) = if contieneTesoro ts 
-                                 then 1 + contarTesoros c 
-                                 else contarTesoros c
-contarTesoros    (Nada c)   = contarTesoros c
+contTesoroDesde :: Int -> Camino -> Camino
+contTesoroDesde    0      ca      = ca
+contTesoroDesde    n      ca      = contTesoroDesde (n-1) (siguienteCamino ca)
 
 cantTesorosEntre :: Int -> Int -> Camino -> Int
-cantTesorosEntre     n    m       ca     = contarTesoros(caminoCorto n m ca)
+cantTesorosEntre    n      m      ca     = cantTesoroHasta m ( contTesoroDesde n ca)
 
-{-Dado un rango de pasos, indica la cantidad de tesoros que hay en ese rango. Por ejemplo, si
+
+{-
+Dado un rango de pasos, indica la cantidad de tesoros que hay en ese rango. Por ejemplo, si
 el rango es 3 y 5, indica la cantidad de tesoros que hay entre hacer 3 pasos y hacer 5. Están
 incluidos tanto 3 como 5 en el resultado.
 -}
-
+----------------------------------------------------------------------------------------
 --Tipos arbóreos--------------------------------------------------------
 arbol0 = EmptyT
 arbol1 :: Tree Int
@@ -311,6 +304,7 @@ listPerLevel    (NodeT x t1 t2) = [x] : nivel (listPerLevel t1) (listPerLevel t2
 {-Dado un árbol devuelve una lista de listas en la que cada elemento representa un nivel de
 dicho árbol.-}
 
+
 ramaMasLarga :: Tree a -> [a]
 ramaMasLarga    EmptyT  = []
 ramaMasLarga    (NodeT x tl tr) = if heightT tl > heightT tr
@@ -337,50 +331,38 @@ data ExpA = Valor Int
                     | Prod ExpA ExpA
                     | Neg ExpA    deriving Show
 
-uno = Valor 1
-dos = Valor 2
-
 
 eval :: ExpA -> Int
-eval    (Valor n )  =  n
-eval    (Sum  (Valor n)(Valor m)) =  n + m 
-eval    (Prod (Valor n)(Valor m)) =  n * m
-eval    (Neg  (Valor n))          = -n 
+eval    (Valor n ) =  n
+eval    (Sum  n m) = eval n + eval m 
+eval    (Prod n m) = eval n * eval m
+eval    (Neg   n ) = - eval n 
 
 
 {-Dada una expresión aritmética devuelve el resultado evaluarla.-}
 
+simplificar ::  ExpA -> ExpA
 simplificar (Valor x) =  Valor x 
 simplificar (Sum x y) = simplificarSum (simplificar x) (simplificar y)
 simplificar (Prod x y) = simplificarProd (simplificar x) (simplificar y)
 simplificar (Neg x) = simplificarNeg (simplificar x) 
 
 simplificarSum :: ExpA -> ExpA -> ExpA
-simplificarSum (Valor 0) n = n
-simplificarSum n (Valor 0) = n 
-simplificarSum (Valor n1) (Valor n2) = Valor (n1 + n2)
+simplificarSum    (Valor 0) ex = ex
+simplificarSum    ex (Valor 0) = ex
+simplificarSum    ex1 ex2      = Sum ex1 ex2
 
 simplificarProd :: ExpA -> ExpA -> ExpA
-simplificarProd (Valor 0) n = Valor 0 
-simplificarProd n (Valor 0) = Valor 0
-simplificarProd (Valor n1) (Valor n2)   = Valor (n1 * n2)
+simplificarProd    (Valor 0) ex  = Valor 0 
+simplificarProd    ex (Valor 0)  = Valor 0
+simplificarProd    ex1      ex2  = Prod ex1 ex2
 
 
 simplificarNeg :: ExpA -> ExpA
-simplificarNeg (Neg (Valor x)) = Valor x 
-simplificarNeg n = n
+simplificarNeg    (Neg  ex) = ex
+simplificarNeg    ex        = Neg ex
 
 {-
-simplificar ::  ExpA -> ExpA
-simplificar    (Valor n)                    = (Valor n)
-simplificar    (Sum (Valor n1) (Valor 0) )  = (Valor n1)
-simplificar    (Sum (Valor 0) (Valor n2) )  = (Valor n2)
-simplificar    (Sum (Valor n1) (Valor n2) ) = (Valor (n1 + n2))
-simplificar    (Prod (Valor 0) (Valor n2) ) = (Valor 0)
-simplificar    (Prod (Valor n1) (Valor 0) ) = (Valor 0)
-simplificar    (Prod (Valor n1) (Valor n2)) = (Valor (n1 * n2))
-simplificar    (Neg (Neg (Valor n1)))      = (Valor n1 )
-
 Dada una expresión aritmética, la simplifica según los siguientes criterios (descritos utilizando
 notación matemática convencional):
 a) 0 + x = x + 0 = x
@@ -388,3 +370,6 @@ b) 0 * x = x * 0 = 0
 c) 1 * x = x * 1 = x
 d) - (- x) = x
 -}
+
+--consultas----------------
+-- 33# 
