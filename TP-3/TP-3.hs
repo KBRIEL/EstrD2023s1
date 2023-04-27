@@ -118,25 +118,10 @@ sumarTesoros   []       = 0
 sumarTesoros   (t:ts)   = if (esTesoro t) then 1 + sumarTesoros ts else sumarTesoros ts
 
 
-contarTesoros :: Camino -> Int
-contarTesoros   (Cofre os c)   =  sumarTesoros os 
-contarTesoros    _             =  0
-
-siguienteCamino :: Camino -> Camino
-siguienteCamino  Fin          = Fin
-siguienteCamino  (Cofre os c) =  c
-siguienteCamino  (Nada c)     =  c
-
-xCantDeTesoros ::Camino -> Bool
-xCantDeTesoros   Fin         =  False
-xCantDeTesoros   (Cofre os ca)= contieneTesoro os
-xCantDeTesoros   (Nada ca)   = False
-                                    
-
 alMenosNTesoros :: Int -> Camino -> Bool
 alMenosNTesoros    0      _     =  True
 alMenosNTesoros    n      Fin   =  False
-alMenosNTesoros    n      (Cofre os c) = alMenosNTesoros (max 0 (n-(contarTesoros c))) c
+alMenosNTesoros    n      (Cofre os c) = alMenosNTesoros (max 0 (n-(sumarTesoros os))) c
 alMenosNTesoros    n      (Nada c)   = alMenosNTesoros n c
 
                                        
@@ -209,10 +194,10 @@ arbol3 = NodeT 1
                         EmptyT
                         )
                 (NodeT 3 
-                    (NodeT 5 
-                            EmptyT 
-                            EmptyT)  
-                    EmptyT
+                        (NodeT 5 
+                              EmptyT 
+                              EmptyT)  
+                        EmptyT
                     ) 
 --Árboles binarios-----------------------------------------------------
    
