@@ -24,8 +24,8 @@ Dados un color y una celda, indica la cantidad de bolitas de ese color. Nota: pe
 existe una operación sobre listas que ayude a resolver el problema.-}
 
 poner :: Color -> Celda -> Celda
-poner    c     CeldaVacia   = Bolita c CeldaVacia
-poner    c     (Bolita c1 cel) = Bolita c1 (poner c cel)
+poner    c        cel  = Bolita c cel
+
 
 {-Dado un color y una celda, agrega una bolita de dicho color a la celda.-}
 
@@ -113,6 +113,15 @@ pasos es 5, indica si hay un tesoro en 5 pasos.-}
 
 
 -----------------------------------
+sumarTesoros :: [Objeto] -> Int
+sumarTesoros   []       = 0
+sumarTesoros   (t:ts)   = if (esTesoro t) then 1 + sumarTesoros ts else sumarTesoros ts
+
+
+contarTesoros :: Camino -> Int
+contarTesoros   (Cofre os c)   =  sumarTesoros os 
+contarTesoros    _             =  0
+
 siguienteCamino :: Camino -> Camino
 siguienteCamino  Fin          = Fin
 siguienteCamino  (Cofre os c) =  c
@@ -127,9 +136,10 @@ xCantDeTesoros   (Nada ca)   = False
 alMenosNTesoros :: Int -> Camino -> Bool
 alMenosNTesoros    0      _     =  True
 alMenosNTesoros    n      Fin   =  False
-alMenosNTesoros    n      ca    = if hayTesoroAqui ca 
-                                        then  alMenosNTesoros (n-1)  (siguienteCamino ca) 
-                                        else  alMenosNTesoros n  (siguienteCamino ca)
+alMenosNTesoros    n      (Cofre os c) = alMenosNTesoros (max 0 (n-(contarTesoros c))) c
+alMenosNTesoros    n      (Nada c)   = alMenosNTesoros n c
+
+                                       
 
 
 
@@ -139,16 +149,19 @@ alMenosNTesoros    n      ca    = if hayTesoroAqui ca
 
 -----(desafio)-------------------------------------------------------------------------
 cantTesoroHasta :: Int -> Camino -> Int
-cantTesoroHasta    0      ca      = if hayTesoroAqui ca
-                                     then 1 
-                                     else 0
-cantTesoroHasta    n      ca      = if hayTesoroAqui ca
-                                     then 1 + cantTesoroHasta (n-1) (siguienteCamino ca)
-                                     else cantTesoroHasta (n-1) (siguienteCamino ca)
+cantTesoroHasta    (-1)      _      = 0 
+cantTesoroHasta    n     Fin      = 0
+cantTesoroHasta    n    (Cofre os c) =  sumarTesoros os + cantTesoroHasta (n-1) c
+                                        
+cantTesoroHasta    n    (Nada c)     = cantTesoroHasta (n-1) c
+
 
 contTesoroDesde :: Int -> Camino -> Camino
 contTesoroDesde    0      ca      = ca
-contTesoroDesde    n      ca      = contTesoroDesde (n-1) (siguienteCamino ca)
+contTesoroDesde    n     Fin      = Fin
+contTesoroDesde    n     (Cofre os c) = contTesoroDesde (n-1) c
+contTesoroDesde    n     (Nada c)   = contTesoroDesde (n-1) c
+
 
 cantTesorosEntre :: Int -> Int -> Camino -> Int
 cantTesorosEntre    n      m      ca     = cantTesoroHasta m ( contTesoroDesde n ca)
@@ -307,7 +320,7 @@ dicho árbol.-}
 
 ramaMasLarga :: Tree a -> [a]
 ramaMasLarga    EmptyT  = []
-ramaMasLarga    (NodeT x tl tr) = if heightT tl > heightT tr
+ramaMasLarga    (NodeT x tl tr) = if length (ramaMasLarga tl) > length (ramaMasLarga tr)
                                      then  x: ramaMasLarga tl 
                                      else  x: ramaMasLarga tr
 
@@ -355,6 +368,8 @@ simplificarSum    ex1 ex2      = Sum ex1 ex2
 simplificarProd :: ExpA -> ExpA -> ExpA
 simplificarProd    (Valor 0) ex  = Valor 0 
 simplificarProd    ex (Valor 0)  = Valor 0
+simplificarProd    ex (Valor 1)  = ex 
+simplificarProd      (Valor 1) ex = ex
 simplificarProd    ex1      ex2  = Prod ex1 ex2
 
 
